@@ -7,7 +7,6 @@ import android.graphics.Color;
 import android.view.View;
 
 class DrawOnTop extends View {
-	Bitmap mBitmap;
 	boolean mBegin;
 	byte[] mYUVData;
 	int mImageWidth, mImageHeight;
@@ -16,17 +15,14 @@ class DrawOnTop extends View {
         super(context);
         
         mBegin = false;
-        mBitmap = null;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         if (mBegin)
-        {        	
-        	mBitmap = edgeDetect(mYUVData, mImageWidth, mImageHeight);
-        	canvas.drawBitmap(mBitmap, 0, 0, null);
-        	
-        	
+        {
+        	canvas.drawColor(Color.argb(127,0,0,0));
+        	canvas.drawBitmap(edgeDetect(mYUVData, mImageWidth, mImageHeight), 0, 0, null);
         } // end if statement
         
         super.onDraw(canvas);
@@ -34,6 +30,7 @@ class DrawOnTop extends View {
     }
     
     /* Use Y only, no Cb nor Cr at all. */
+    
 	public Bitmap edgeDetect(byte fg[], int width, int height)
 	{
 		Bitmap result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444);
@@ -48,18 +45,19 @@ class DrawOnTop extends View {
 				float A = fg[offset-1] - O; // x-1, y
 				float B = fg[offset-width] - O; // x, y-1
 				
-				int t = (A*A+B*B) > 22500?
-						Color.argb(255, 255, 255, 255):Color.argb(127, 0, 0, 0);
-
-				result.setPixel(x, y, t);
+				if(A*A+B*B>10000)
+				{
+					result.setPixel(x, y, Color.WHITE);
+				}
 			}
 		}
 		
 		return result;
 	}
 	
-	/*
-	public Bitmap edgeDetectWithSobelAlgorithm(byte fg[], int width, int height)
+	
+    /*
+	public Bitmap edgeDetect(byte fg[], int width, int height)
 	{
 		Bitmap result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444);
 		
@@ -77,14 +75,15 @@ class DrawOnTop extends View {
 					}
 				}
 				
-				int c = (int) Math.sqrt(A*A+B*B);
-				int t = Color.argb(127+c/2, c, c, c);
-
-				result.setPixel(x, y, t);
+				if(A*A+B*B>22500)
+				{
+					result.setPixel(x, y, Color.WHITE);
+				}
 			}
 		}
 		
 		return result;
 	}
 	*/
+	
 }

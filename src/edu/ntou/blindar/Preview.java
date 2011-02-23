@@ -53,7 +53,8 @@ class Preview extends SurfaceView implements SurfaceHolder.Callback {
         		  }
         		  
         		  // Pass YUV data to draw-on-top companion
-        		  System.arraycopy(data, 0, mDrawOnTop.mYUVData, 0, data.length);
+        		  // System.arraycopy(data, 0, mDrawOnTop.mYUVData, 0, data.length);
+        		  mDrawOnTop.mYUVData=data;
     			  mDrawOnTop.invalidate();
         	  }
            });
@@ -83,7 +84,7 @@ class Preview extends SurfaceView implements SurfaceHolder.Callback {
         parameters.setPreviewFrameRate(15);
         parameters.setSceneMode(Camera.Parameters.SCENE_MODE_AUTO);
         parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+        // parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
         mCamera.setParameters(parameters);
         mCamera.startPreview();
     }

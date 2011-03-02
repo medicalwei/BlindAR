@@ -11,7 +11,7 @@ class DrawOnTop extends View {
 	boolean mBegin;
 	byte[] mYUVData;
 	int mImageWidth, mImageHeight;
-	int mThreshold=20, mDotted;
+	int mThreshold=20, mDotted, mCThreshold=20, mCDotted;
 
     public DrawOnTop(Context context) {
         super(context);
@@ -26,7 +26,7 @@ class DrawOnTop extends View {
         	paint.setARGB(255, 127, 127, 127);
         	canvas.drawColor(Color.argb(127,0,0,0));
         	canvas.drawBitmap(edgeDetect(mYUVData, mImageWidth, mImageHeight), 0, 0, null);
-        	canvas.drawText("Threshold: " + mThreshold + ", Dotted: " + mDotted, 10, 10, paint);
+        	canvas.drawText("T: " + mThreshold + ", D: " + mDotted + ", CT: "+ mCThreshold + " , CD: " + mCDotted, 10, 10, paint);
         } // end if statement
         
         super.onDraw(canvas);
@@ -38,8 +38,9 @@ class DrawOnTop extends View {
 	public Bitmap edgeDetect(byte fg[], int width, int height)
 	{
 		Bitmap result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444);
-
-		mDotted = 0;
+		mDotted = mCDotted = 0;
+		int[] resultBuffer = new int[height*width];
+		int[] N = new int[height*width];
 		
 		for (int y = 1; y < height-1; y++) {
 			
@@ -59,24 +60,47 @@ class DrawOnTop extends View {
 				int A = Math.abs(((int) fg[offset-1] & 0xFF) - O); // x-1, y
 				int B = Math.abs(((int) fg[offset-width] & 0xFF) - O); // x, y-1
 				
-				if(A+B>mThreshold)
-				{
-					result.setPixel(x, y, Color.WHITE);
-					mDotted += 1;
-				}
+				N[offset] = A*A+B*B;
 			}
 		}
 
+		
+		for (int y = 2; y < height-2; y++) {
+			for (int x = 2; x < width-2; x++) {
+				int offset = y*width + x;
+				int Q = N[offset];
+				
+				if (Q>mThreshold)
+				{
+					if (Q>mCThreshold &&
+						Q>N[offset-1] && Q>N[offset+1] &&
+						Q>N[offset-width] && Q>N[offset+width] &&
+						
+						Q>N[offset-width-1] && Q>N[offset-width+1] &&
+						Q>N[offset+width-1] && Q>N[offset+width+1]
+					){
+						mCDotted += 1;
+						resultBuffer[offset] = Color.RED;
+					}
+					else
+					{
+						resultBuffer[offset] = Color.WHITE;
+						mDotted += 1;
+					}
+				}
+			}
+		}
 		/* Adjust threshold by looking at the number of dots */
-		    if(mDotted>10000) mThreshold += 5;
-		else if(mDotted>7500) mThreshold += 3;
-		else if(mDotted>5000) mThreshold += 1;
-		else if(mDotted<1000) mThreshold -= 5;
-		else if(mDotted<2000) mThreshold -= 3;
-		else if(mDotted<4000) mThreshold -= 1;
+		mThreshold += (mDotted-5000) / 100;
+		mCThreshold += (mCDotted-30) / 5;
 		
 		if(mThreshold<5) mThreshold = 5;
-		else if(mThreshold>255) mThreshold = 255;
+		else if(mThreshold>65535) mThreshold = 65535;
+		
+		if(mCThreshold<5) mCThreshold = 5;
+		else if(mCThreshold>65535) mCThreshold = 65535;
+		
+		result.setPixels(resultBuffer,0,width,0,0,width,height);
 		
 		return result;
 	}

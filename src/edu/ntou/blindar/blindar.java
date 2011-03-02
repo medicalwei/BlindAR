@@ -2,13 +2,16 @@ package edu.ntou.blindar;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.View.OnKeyListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.ViewGroup.LayoutParams;
 
 // ----------------------------------------------------------------------
 
-public class blindar extends Activity {    
+public class blindar extends Activity{    
     private Preview mPreview;
     private DrawOnTop mDrawOnTop;
 
@@ -29,4 +32,17 @@ public class blindar extends Activity {
         setContentView(mPreview, new LayoutParams(320, 240));
         addContentView(mDrawOnTop, new LayoutParams(320, 240));
     }
+    
+    /* TODO: Auto Focus and Begin draw edge on one click >w</
+
+    private OnKeyListener mKeyListener = new OnKeyListener() {
+        public boolean onKey(View v, int keyCode, KeyEvent event) {
+        	// mPreview.mCamera.autoFocus(null);
+        	mDrawOnTop.mDrawEdges = !mDrawOnTop.mDrawEdges;
+    		return true;
+        }
+    };
+	*/
+
+
 } 

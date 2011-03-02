@@ -83,7 +83,7 @@ class Preview extends SurfaceView implements SurfaceHolder.Callback {
         parameters.setPreviewSize(320, 240);
         parameters.setPreviewFrameRate(15);
         parameters.setSceneMode(Camera.Parameters.SCENE_MODE_AUTO);
-        parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+        parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
         // parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
         mCamera.setParameters(parameters);
         mCamera.startPreview();

@@ -1,8 +1,8 @@
-package edu.ntou.blindar;
+package edu.ntou.hw1;
 
 import java.io.IOException;
 
-import edu.ntou.blindar.DrawOnTop;
+import edu.ntou.hw1.DrawOnTop;
 
 import android.content.Context;
 import android.hardware.Camera;
@@ -83,7 +83,7 @@ class Preview extends SurfaceView implements SurfaceHolder.Callback {
         parameters.setPreviewSize(320, 240);
         parameters.setPreviewFrameRate(15);
         parameters.setSceneMode(Camera.Parameters.SCENE_MODE_AUTO);
-        parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
+        parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
         // parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
         mCamera.setParameters(parameters);
         mCamera.startPreview();

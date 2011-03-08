@@ -5,7 +5,7 @@
  * should not be modified by hand.
  */
 
-package edu.ntou.blindar;
+package edu.ntou.hw1;
 
 public final class R {
     public static final class attr {

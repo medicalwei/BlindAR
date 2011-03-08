@@ -3,8 +3,6 @@ package edu.ntou.blindar;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.View;
-import android.view.View.OnKeyListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.ViewGroup.LayoutParams;
@@ -33,16 +31,23 @@ public class blindar extends Activity{
         addContentView(mDrawOnTop, new LayoutParams(320, 240));
     }
     
-    /* TODO: Auto Focus and Begin draw edge on one click >w</
+    /* TODO: Auto Focus and Begin draw edge on one click >w</ */
 
-    private OnKeyListener mKeyListener = new OnKeyListener() {
-        public boolean onKey(View v, int keyCode, KeyEvent event) {
-        	// mPreview.mCamera.autoFocus(null);
-        	mDrawOnTop.mDrawEdges = !mDrawOnTop.mDrawEdges;
-    		return true;
-        }
-    };
-	*/
+    @Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+    	switch(keyCode)
+    	{
+    	case KeyEvent.KEYCODE_DPAD_CENTER: // DPAD_CENTER
+    		mPreview.mCamera.autoFocus(null);
+    		break;
+    		
+    	case KeyEvent.KEYCODE_MENU: // MENU
+    		mDrawOnTop.mDrawEdges = !mDrawOnTop.mDrawEdges;
+    		break;
+    	}
+		return super.onKeyDown(keyCode, event);
+    }
+	
 
 
 } 

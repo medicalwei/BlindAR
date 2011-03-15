@@ -27,8 +27,8 @@ public class blindar extends Activity{
         // Create our DrawOnTop view.
         mDrawOnTop = new DrawOnTop(this);
         mPreview = new Preview(this, mDrawOnTop);
-        setContentView(mPreview, new LayoutParams(320, 240));
-        addContentView(mDrawOnTop, new LayoutParams(320, 240));
+        setContentView(mPreview, new LayoutParams(480, 320));
+        addContentView(mDrawOnTop, new LayoutParams(480, 320));
     }
     
     /* TODO: Auto Focus and Begin draw edge on one click >w</ */

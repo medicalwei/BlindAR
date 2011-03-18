@@ -1,14 +1,15 @@
 package edu.ntou.blindar;
 
 import java.util.ArrayList;
-import edu.ntou.cvlab.Point.Line;
-import edu.ntou.cvlab.Point.Point;
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.View;
+
+import edu.ntou.cvlab.Point.Line;
+import edu.ntou.cvlab.Point.Point;
 
 class DrawOnTop extends View {
 	boolean mBegin;
@@ -84,7 +85,8 @@ class DrawOnTop extends View {
 		byte state = 0, condition;
 		int lineDetectionBegin = 0;
 		
-		Point center = new Point();
+		boolean[][] centerPointArray = new boolean[width][height];
+		
 		ArrayList<Point> P = new ArrayList<Point>();
 		ArrayList<Line> L = new ArrayList<Line>();
 		
@@ -120,85 +122,106 @@ class DrawOnTop extends View {
 				/* on state 5 */
 				else if (state == 5 && ((x - lineDetectionBegin) < (width / 20)))
 				{
-					center.x = (x + lineDetectionBegin) / 2; // 取中點
-					center.y = y;
-					center.width=x-lineDetectionBegin;
-					
-					/* 抓直線 */
-					if (L.isEmpty()) {// 沒有線的情況下
-						if (P.isEmpty()) {// 沒有線 也沒有點
-							P.add(new Point(center));
-						} else {
-							Point test;// 沒有線 有點
-							int Long, small = -1, S2 = 0;
-							for (int temp = 0; temp < P.size(); temp++) {
-								
-								test = (Point) P.get(temp);
-								if(center.width!=test.width){
-									continue;
-								}
-								Long = (center.x - test.x)
-										* (center.x - test.x)
-										+ (center.y - test.y)
-										* (center.y - test.y);
-								if (Long < small || small == -1) {
-									small = Long;
-									S2 = temp;
-								}
-							}
-							if (small < 20) {
-								test = (Point) P.get(S2);
-								Line newLine = new Line(test, center);
-								L.add(new Line(newLine));
-								P.remove(S2);
-							} else {
-								P.add(new Point(center));
-							}
-						}
-					} else {// 有線
-						Line tempLine;
-						int temp;
-						for (temp = 0; temp < L.size(); temp++) {
-							tempLine = (Line) L.get(temp);
-							if (tempLine.getDistance(center.x, center.y) < 5) {// 再和線距離小於1的情況下
-								tempLine.setLastPoint(center);
-								break;
-							}
-						}
-						if (temp >= L.size()) {// 和現有的線太遠
-							if (P.isEmpty()) {
-								P.add(new Point(center));
-							} else {
-								Point test;// 沒有線 有點
-								int Long, small = -1, S2 = 0;
-								for (temp = 0; temp < P.size(); temp++) {
-									test = (Point) P.get(temp);
-									Long = (center.x - test.x)
-											* (center.x - test.x)
-											+ (center.y - test.y)
-											* (center.y - test.y);
-									if (Long < small || small == -1) {
-										small = Long;
-										S2 = temp;
-									}
-								}
-								if (small < 30) {
-									test = (Point) P.get(S2);
-									Line newLine = new Line(test, center);
-									L.add(new Line(newLine));
-									P.remove(S2);
-								} else {
-									P.add(new Point(center));
-								}
-							}
-						}
-					}
+					Point point = new Point();
+					point.x = (x + lineDetectionBegin) / 2; // 取中點
+					point.y = y;
+					point.width=x-lineDetectionBegin;
+					P.add(point);
+					centerPointArray[point.x][point.y]=true;
 				}
 				
 				/* ask for next state */
 				state = nextState[condition][state];
 			}
 		}
+		
+		
+		
+		
+		
+		
+		
+		for(Point point: P)
+		{
+			Point target = new Point();
+			
+			if (point.x >= width-2 || point.y >= height-2)
+			{
+				continue;
+			}
+			
+			
+
+			/* search for forward point */
+			if (centerPointArray[point.x][point.y+2])
+			{
+				target.set(point.x, point.y+2, point.width);
+			}
+			else if (centerPointArray[point.x+2][point.y])
+			{
+				target.set(point.x+2, point.y, point.width);
+			}
+			else if (centerPointArray[point.x+2][point.y+2])
+			{
+				target.set(point.x+2, point.y+2, point.width);
+			}
+			else if (centerPointArray[point.x-2][point.y+2])
+			{
+				target.set(point.x-2, point.y+2, point.width);
+			}
+			else if (centerPointArray[point.x-2][point.y+1])
+			{
+				target.set(point.x-2, point.y+1, point.width);
+			}
+			else if (centerPointArray[point.x+2][point.y+1])
+			{
+				target.set(point.x+2, point.y+1, point.width);
+			}
+			else if (centerPointArray[point.x+1][point.y+2])
+			{
+				target.set(point.x+1, point.y+2, point.width);
+			}
+			else if (centerPointArray[point.x-1][point.y+2])
+			{
+				target.set(point.x-1, point.y+2, point.width);
+			}
+			else
+			{
+				continue;
+			}
+
+			
+			Line line = new Line(point, target);
+			
+			/* seek if there is a line already there */
+			
+			boolean lineHasFound = false;
+			for (Line line2: L) {
+				Point lineLastPoint = line2.getLastPoint();
+				if (	(lineLastPoint.y < target.y)
+						&& line2.isExtension(line, 3))
+				{
+					line2.setLastPoint(target);
+					lineHasFound = true;
+					break;
+				}
+			}
+			
+			if (lineHasFound)
+			{
+				continue;
+			}
+			else
+			{
+				/* else create a new line */
+				L.add(line);
+			}
+			
+		}
+		
+		
+		
+		
 		
 		LinesAndPoints f = new LinesAndPoints();
 		f.lines = L;

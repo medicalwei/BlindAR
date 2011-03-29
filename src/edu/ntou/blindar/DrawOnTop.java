@@ -61,10 +61,12 @@ class DrawOnTop extends View {
 								paintRed);
 			}
 			
+			/*
 			for(Point point:f.points)
 			{
 				canvas.drawPoint(point.x, point.y, paintGreen);
 			}
+			*/
 			
 			canvas.drawText("Points: " + f.points.size() + ", Lines: " + f.lines.size(), 10, 10, paintBlue);
 			
@@ -104,10 +106,10 @@ class DrawOnTop extends View {
 				int difference = ((int) (src[y*width + x + 1] & 0xFF) - (int) (src[y*width + x] & 0xFF));
 				
 				/* condition: 0: -, 1: =, 2: + */
-				if (difference > 50) {
+				if (difference > 30) {
 					condition = 2;
 				}
-				else if (difference < -50) {
+				else if (difference < -30) {
 					condition = 0;
 				}
 				else {
@@ -142,81 +144,56 @@ class DrawOnTop extends View {
 		
 		
 		for(Point point: P)
-		{
-			Point target = new Point();
-			
-			if (point.x >= width-2 || point.y >= height-2)
+		{			
+			if (!centerPointArray[point.x][point.y]
+			    || point.x >= width-2 || point.y >= height-2)
 			{
 				continue;
 			}
 			
+			/* search for forwarding point */
+			Line line = new Line(point, point);
+			Point currentPoint = new Point(point);
+			int linePixel = 0;
 			
-
-			/* search for forward point */
-			if (centerPointArray[point.x][point.y+2])
+			while(true)
 			{
-				target.set(point.x, point.y+2, point.width);
-			}
-			else if (centerPointArray[point.x+2][point.y])
-			{
-				target.set(point.x+2, point.y, point.width);
-			}
-			else if (centerPointArray[point.x+2][point.y+2])
-			{
-				target.set(point.x+2, point.y+2, point.width);
-			}
-			else if (centerPointArray[point.x-2][point.y+2])
-			{
-				target.set(point.x-2, point.y+2, point.width);
-			}
-			else if (centerPointArray[point.x-2][point.y+1])
-			{
-				target.set(point.x-2, point.y+1, point.width);
-			}
-			else if (centerPointArray[point.x+2][point.y+1])
-			{
-				target.set(point.x+2, point.y+1, point.width);
-			}
-			else if (centerPointArray[point.x+1][point.y+2])
-			{
-				target.set(point.x+1, point.y+2, point.width);
-			}
-			else if (centerPointArray[point.x-1][point.y+2])
-			{
-				target.set(point.x-1, point.y+2, point.width);
-			}
-			else
-			{
-				continue;
-			}
-
-			
-			Line line = new Line(point, target);
-			
-			/* seek if there is a line already there */
-			
-			boolean lineHasFound = false;
-			for (Line line2: L) {
-				Point lineLastPoint = line2.getLastPoint();
-				if (	(lineLastPoint.y < target.y)
-						&& line2.isExtension(line, 3))
+				centerPointArray[currentPoint.x][currentPoint.y] = false;
+				
+				if (centerPointArray[currentPoint.x][currentPoint.y+1])
 				{
-					line2.setLastPoint(target);
-					lineHasFound = true;
+					currentPoint.y += 1;
+				}
+				else if (centerPointArray[currentPoint.x+1][currentPoint.y])
+				{
+					currentPoint.x += 1;
+				}
+				else if (centerPointArray[currentPoint.x+1][currentPoint.y+1])
+				{
+					currentPoint.x += 1;
+					currentPoint.y += 1;
+				}
+				else if (centerPointArray[currentPoint.x-1][currentPoint.y+1])
+				{
+					currentPoint.x -= 1;
+					currentPoint.y += 1;
+				}
+				else
+				{
 					break;
+				}
+				
+				centerPointArray[currentPoint.x][currentPoint.y] = false;
+				line.setLastPoint(currentPoint);
+				linePixel += 1;
+				
+				if (currentPoint.x >= width-2 || currentPoint.y >= height-2)
+				{
+					continue;
 				}
 			}
 			
-			if (lineHasFound)
-			{
-				continue;
-			}
-			else
-			{
-				/* else create a new line */
-				L.add(line);
-			}
-			
+			if(linePixel > 10) L.add(line);
 		}
 		
 		

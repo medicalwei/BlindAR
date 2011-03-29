@@ -39,14 +39,13 @@ public class Line {
 		return m;
 	}
 
-	public boolean isExtension(Line target, double threshold) {
+	public boolean isExtension(Point target, double threshold) {
 		
 		double a = getSlope();
 		double b1 = firstPoint.y - a*firstPoint.x;
-		double b2 = target.firstPoint.y - a*target.firstPoint.x;
-		double b3 = target.lastPoint.y - a*target.lastPoint.x;
+		double b2 = target.y - a*target.x;
 		
-		return (Math.abs(b2 - b1) + Math.abs(b3 - b1) <= threshold);
+		return (Math.abs(b2 - b1) <= threshold);
 	}
 	
 	public double getB() {

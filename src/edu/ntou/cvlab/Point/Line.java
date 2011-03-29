@@ -6,6 +6,21 @@ public class Line {
 	 */
 	private Point firstPoint;
 	private Point lastPoint;
+	
+	private boolean hasCachedABC = false;
+	private double a;
+	private double b;
+	private double c;
+	private double absqrt;
+	
+	private boolean hasCachedLength = false;
+	private double length;
+	
+	private boolean hasCachedCenter = false;
+	private Point center;
+	
+	private boolean hasCachedSlope = false;
+	private double slope;
 
 	public Line() {
 		firstPoint.x = -1;
@@ -26,33 +41,12 @@ public class Line {
 
 	public void setFirstPoint(Point X) {
 		firstPoint = new Point(X);
+		this.clearCache();
 	}
 
 	public void setLastPoint(Point X) {
 		lastPoint = new Point(X);
-	}
-
-	public double getSlope() {
-		double m;// slope
-		m = ((double) (lastPoint.y - firstPoint.y))
-				/ ((double) (lastPoint.x - firstPoint.x));
-		return m;
-	}
-
-	public boolean isExtension(Point target, double threshold) {
-		
-		double a = getSlope();
-		double b1 = firstPoint.y - a*firstPoint.x;
-		double b2 = target.y - a*target.x;
-		
-		return (Math.abs(b2 - b1) <= threshold);
-	}
-	
-	public double getB() {
-		double b;
-		double m = this.getSlope();
-		b = firstPoint.y - (m * firstPoint.x);
-		return b;
+		this.clearCache();
 	}
 
 	public Point getFirstPoint() {
@@ -62,15 +56,56 @@ public class Line {
 	public Point getLastPoint() {
 		return lastPoint;
 	}
+	
+	private void clearCache() {
+		hasCachedABC = hasCachedLength = hasCachedCenter = hasCachedSlope = false;
+	}
+	
+	public double getSlope() {
+		if(!hasCachedSlope)
+		{
+			slope = ((double) (lastPoint.y - firstPoint.y))	/ ((double) (lastPoint.x - firstPoint.x));
+			hasCachedSlope = true;
+		}
+		return slope;
+	}
 
-	public double getDistance(int x, int y) {
-		return Math.abs(this.getSlope() * x - y + this.getB())
-				/ (double) (Math.pow(Math.pow(this.getSlope(), 2) + 1, 0.5));
+	public double getDistance(Point p) {
+		// ax+by+c = 0:
+		//  (y1 – y2)x + (x2 – x1)y + (x1y2 – x2y1) = 0
+		// Math.abs(ax+by+c) / Math.sqrt(a*a+b*b)
+		if(!hasCachedABC)
+		{
+			a = firstPoint.y - lastPoint.y;
+			b = lastPoint.x - firstPoint.x;
+			c = firstPoint.x * lastPoint.y - lastPoint.x * firstPoint.y;
+			absqrt = Math.sqrt(a * a + b * b);
+			hasCachedABC = true;
+		}
+		
+		return Math.abs(a * p.x + b * p.y + c) / absqrt;
+	}
+	
+	public Point getCenter()
+	{
+		if(!hasCachedCenter)
+		{
+			center = new Point((lastPoint.x+firstPoint.x) / 2, (lastPoint.y+firstPoint.y) / 2, 0);
+			hasCachedCenter = true;
+		}
+		
+		return new Point(center);
 	}
 	
 	public double getLength() {
-		double x = lastPoint.x - firstPoint.x;
-		double y = lastPoint.y - firstPoint.y;
-		return Math.sqrt(x*x + y*y);
+		if(!hasCachedLength)
+		{
+			double x = lastPoint.x - firstPoint.x;
+			double y = lastPoint.y - firstPoint.y;
+			length = Math.sqrt(x*x + y*y);
+			hasCachedLength = true;
+		}
+		
+		return length;
 	}
 }

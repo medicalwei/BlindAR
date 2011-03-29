@@ -125,7 +125,7 @@ class DrawOnTop extends View {
 				else if (state == 5 && ((x - lineDetectionBegin) < (width / 20)))
 				{
 					Point point = new Point();
-					point.x = (x + lineDetectionBegin) / 2; // 取中點
+					point.x = (x + lineDetectionBegin) / 2; // Find central point
 					point.y = y;
 					point.width=x-lineDetectionBegin;
 					P.add(point);
@@ -160,6 +160,7 @@ class DrawOnTop extends View {
 			{
 				centerPointArray[currentPoint.x][currentPoint.y] = false;
 				
+				
 				if (centerPointArray[currentPoint.x][currentPoint.y+1])
 				{
 					currentPoint.y += 1;
@@ -183,20 +184,38 @@ class DrawOnTop extends View {
 					break;
 				}
 				
+				
 				centerPointArray[currentPoint.x][currentPoint.y] = false;
 				line.setLastPoint(currentPoint);
 				linePixel += 1;
 				
 				if (currentPoint.x >= width-2 || currentPoint.y >= height-2)
 				{
-					continue;
+					break;
 				}
 			}
 			
-			if(linePixel > 10) L.add(line);
+			if(linePixel > 10) // Threshold control line length
+			{
+				// FIXME: line combining has bug that cannot combine perfectly
+				
+				boolean extended = false;
+				for(Line viralLine: L)
+				{
+					if (viralLine.getDistance(line.getCenter()) <= 3)
+					{
+						viralLine.setLastPoint(line.getLastPoint());
+						extended = true;
+						break;
+					}
+				}
+				
+				if(!extended)
+				{
+					L.add(line);
+				}
+			}
 		}
-		
-		
 		
 		
 		

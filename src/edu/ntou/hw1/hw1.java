@@ -42,7 +42,8 @@ public class hw1 extends Activity{
     		break;
     		
     	case KeyEvent.KEYCODE_MENU: // MENU
-    		mDrawOnTop.mDrawEdges = !mDrawOnTop.mDrawEdges;
+    		
+    		mDrawOnTop.status = (mDrawOnTop.status + 1) % 4;
     		break;
     	}
 		return super.onKeyDown(keyCode, event);

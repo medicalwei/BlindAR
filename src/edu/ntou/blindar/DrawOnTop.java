@@ -18,10 +18,21 @@ class DrawOnTop extends View {
 	int mThreshold=20, mDotted;
 	boolean mDrawEdges=true;
 	boolean areaDetected=false;
+	
+	double sinTable[], cosTable[];
 
     public DrawOnTop(Context context) {
         super(context);
         mBegin = false;
+        
+        sinTable = new double[360];
+        cosTable = new double[360];
+        
+        for(int i=0;i<360;i++)
+        {
+        	sinTable[i] = Math.sin(Math.toRadians(i));
+        	cosTable[i] = Math.cos(Math.toRadians(i));
+        }
     }
 
     @Override
@@ -61,12 +72,10 @@ class DrawOnTop extends View {
 								paintRed);
 			}
 			
-			/*
 			for(Point point:f.points)
 			{
 				canvas.drawPoint(point.x, point.y, paintGreen);
 			}
-			*/
 			
 			canvas.drawText("Points: " + f.points.size() + ", Lines: " + f.lines.size(), 10, 10, paintBlue);
 			
@@ -137,86 +146,37 @@ class DrawOnTop extends View {
 			}
 		}
 		
+		int huffmanMaxRadius = (int) Math.sqrt(width*width+height*height);
+		int huffmanMaxHalfRadius = huffmanMaxRadius / 2;
+		int halfWidth = width/2;
+		int halfHeight = height/2;
+		int houghVote[][] = new int[huffmanMaxRadius][360];
 		
-		
-		
-		
-		
-		
-		for(Point point: P)
-		{			
-			if (!centerPointArray[point.x][point.y]
-			    || point.x >= width-2 || point.y >= height-2)
+		for (Point point: P)
+		{
+			for (int theta = 0; theta < 360; theta++)
 			{
-				continue;
-			}
-			
-			/* search for forwarding point */
-			Line line = new Line(point, point);
-			Point currentPoint = new Point(point);
-			int linePixel = 0;
-			
-			while(true)
-			{
-				centerPointArray[currentPoint.x][currentPoint.y] = false;
-				
-				
-				if (centerPointArray[currentPoint.x][currentPoint.y+1])
-				{
-					currentPoint.y += 1;
-				}
-				else if (centerPointArray[currentPoint.x+1][currentPoint.y])
-				{
-					currentPoint.x += 1;
-				}
-				else if (centerPointArray[currentPoint.x+1][currentPoint.y+1])
-				{
-					currentPoint.x += 1;
-					currentPoint.y += 1;
-				}
-				else if (centerPointArray[currentPoint.x-1][currentPoint.y+1])
-				{
-					currentPoint.x -= 1;
-					currentPoint.y += 1;
-				}
-				else
-				{
-					break;
-				}
-				
-				
-				centerPointArray[currentPoint.x][currentPoint.y] = false;
-				line.setLastPoint(currentPoint);
-				linePixel += 1;
-				
-				if (currentPoint.x >= width-2 || currentPoint.y >= height-2)
-				{
-					break;
-				}
-			}
-			
-			if(linePixel > 10) // Threshold control line length
-			{
-				// FIXME: line combining has bug that cannot combine perfectly
-				
-				boolean extended = false;
-				for(Line viralLine: L)
-				{
-					if (viralLine.getDistance(line.getCenter()) <= 3)
-					{
-						viralLine.setLastPoint(line.getLastPoint());
-						extended = true;
-						break;
-					}
-				}
-				
-				if(!extended)
-				{
-					L.add(line);
-				}
+				int r = (int) ((point.x-halfWidth) * cosTable[theta] 
+				               + (point.y-halfHeight) * sinTable[theta] + huffmanMaxHalfRadius);
+				houghVote[r][theta] += 1;
 			}
 		}
 		
+		for (int r=0;r<huffmanMaxRadius;r++)
+		{
+			for (int theta=0;theta<360;theta++)
+			{
+				if (houghVote[r][theta] > 25)
+				{
+					int rd = r - huffmanMaxHalfRadius;
+					int x1 = 0;
+					int x2 = width;
+					int y1 = (int) (((rd - (x1-halfWidth * cosTable[theta])) / sinTable[theta]) + halfHeight);
+					int y2 = (int) (((rd - (x2-halfWidth * cosTable[theta])) / sinTable[theta]) + halfHeight);
+					L.add(new Line(new Point(x1, y1, 0), new Point(x2, y2, 0)));
+				}
+			}
+		}
 		
 		
 		LinesAndPoints f = new LinesAndPoints();

@@ -1,7 +1,5 @@
 package edu.ntou.blindar;
 
-import java.util.ArrayList;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -94,15 +92,8 @@ class DrawOnTop extends View {
 		
 		int colors[]=
 		{Color.rgb(0,0,255),
-		Color.rgb(0,0,127),
-		Color.rgb(0,0,63),
 		Color.rgb(0,0,0),
-		Color.rgb(63,0,0),
-		Color.rgb(127,0,0),
 		Color.rgb(255,0,0)};
-
-		int widthTotal[] = new int[width];
-		int heightTotal[] = new int[height];
 		
 		for(int pos=0;pos<pixels;pos++)
 		{
@@ -116,21 +107,7 @@ class DrawOnTop extends View {
 			
 			if (offset < 100)
 			{
-				if (offset < 64)
-				{
-					if (offset < 36)
-					{
-						detectionMap[pos] = 3;
-					}
-					else
-					{
-						detectionMap[pos] = 2;
-					}
-				}
-				else
-				{
-					detectionMap[pos] = 1;
-				}
+				detectionMap[pos] = 1;
 			}
 			else
 			{
@@ -139,73 +116,39 @@ class DrawOnTop extends View {
 			}
 		}
 		
+		int heightTotal[] = new int[height];
+		int heightThreshold = 0;
+		
 		for(int pos=0;pos<pixels;pos++)
 		{
 			int d = detectionMap[pos]-lastDetectionMap[pos];
-			bitmap[pos] = colors[d+3];
-			widthTotal[pos%width] += d;
+			bitmap[pos] = colors[d+1];
 			heightTotal[pos/width] += d;
+			heightThreshold += d;
 		}
 		
-		ArrayList <PeakData> widthPeaks = new ArrayList<PeakData>();
-		ArrayList <PeakData> heightPeaks = new ArrayList<PeakData>();
-		boolean isIncreasing = false;
-		
-		for(int i=1;i<width;i++)
-		{
-			int diff = widthTotal[i] - widthTotal[i-1];
-			/*
-			if (widthTotal[i] > 0)
-			{
-				bitmap[i] = Color.rgb(0,(widthTotal[i] << 1),0);
-			}
-			else
-			{
-				bitmap[i] = Color.rgb(0,0,-(widthTotal[i] << 1));
-			}
-			*/
-			
-			if (diff > 0 && !isIncreasing)
-			{
-				isIncreasing = true;
-			}
-			else if (diff < 0 && isIncreasing)
-			{
-				isIncreasing = false;
-				if(widthTotal[i]>80)
-				{
-					widthPeaks.add(new PeakData(i, widthTotal[i]));
-					bitmap[i] = Color.rgb(0,255,0);
-				}
-			}
-			
-		}
+		heightThreshold = (int) ((heightThreshold / height) + 20);
 		
 		for(int i=1;i<height;i++)
 		{
-			int diff = heightTotal[i] - heightTotal[i-1];
-			/*
-			if (heightTotal[i] > 0)
-			{
-				bitmap[i*width] = Color.rgb(0,(heightTotal[i] << 1),0);
-			}
-			else
-			{
-				bitmap[i*width] = Color.rgb(0,0,-(heightTotal[i] << 1));
-			}
-			*/
+			int h = heightTotal[i] >> 2;
+			int a = i*width;
 			
-			if (diff > 0 && !isIncreasing)
+			if (h > 0)
 			{
-				isIncreasing = true;
-			}
-			else if (diff < 0 && isIncreasing)
-			{
-				isIncreasing = false;
-				if(heightTotal[i]>80)
+				if (h >= (heightThreshold >> 2))
 				{
-					heightPeaks.add(new PeakData(i, heightTotal[i]));
-					bitmap[i*width] = Color.rgb(0,255,0);
+					for (int f=0; f<=h; f++)
+					{
+						bitmap[a + f] = Color.GREEN;
+					}
+				}
+				else
+				{
+					for (int f=0; f<=h; f++)
+					{
+						bitmap[a + f] = Color.WHITE;
+					}
 				}
 			}
 		}
@@ -229,8 +172,8 @@ class DrawOnTop extends View {
 	}
 	
 	public static int CbCrOffset(short a[], short b[]) {
-		int cb = a[0]-b[0];
-		int cr = a[1]-b[1];
+		int cr = a[0]-b[0];
+		int cb = a[1]-b[1];
 		return cb*cb + cr*cr;
 	}
 

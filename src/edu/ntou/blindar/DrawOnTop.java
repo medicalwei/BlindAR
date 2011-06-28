@@ -14,9 +14,6 @@ class DrawOnTop extends View {
 	int mThreshold=20, mDotted;
 	boolean mDrawEdges=true;
 	boolean areaDetected=false;
-	
-	byte lastDetectionMap[];
-	short skinColor[] = {142, 120};
 
     public DrawOnTop(Context context) {
         super(context);
@@ -55,9 +52,7 @@ class DrawOnTop extends View {
 			value = i_value;
 		}
 	}
-	
-    /* Use Y only, no Cb nor Cr at all. */
-    
+	    
 	public int[] handDetect(byte fg[], int width, int height)
 	{
 		width = width / 2;
@@ -66,96 +61,49 @@ class DrawOnTop extends View {
 		int pixels = height * width;
 		short CbCr[][] = new short[pixels][2];
 		int bitmap[] = new int[pixels];
-		byte detectionMap[] = new byte[pixels];
+		int detectionMapIntegralImage[][] = new int[height][width];
+		boolean detectionMap[][] = new boolean[height][width];
 		
-		if (lastDetectionMap == null)
-		{
-			lastDetectionMap = new byte[pixels];
-		}
-		
+		// Decode YUV to CbCr
 		decodeYUVtoCbCr(CbCr, fg, pixels);
 		
-		int centerPos = (width + pixels) / 2;
-		
-		short spotColor[] = CbCr[centerPos];
-		
-		
-		if (CbCrOffset(spotColor, skinColor) > 100)
+		// get a skin color integral image
+		for(int y=1;y<height-1;y++)
 		{
-			lastDetectionMap = detectionMap;
-			return bitmap; /* blank */
+			for(int x=1;x<width-1;x++)
+			{
+				detectionMapIntegralImage[y][x] = 
+					detectionMapIntegralImage[y-1][x] +
+					detectionMapIntegralImage[y][x-1] -
+					detectionMapIntegralImage[y-1][x-1] +
+					(isSkinColor(CbCr[y*width+x])?1:0);
+			}
 		}
 		
-		skinColor[0] = spotColor[0];
-		skinColor[1] = spotColor[1];
-		
-		
-		int colors[]=
-		{Color.rgb(0,0,255),
-		Color.rgb(0,0,0),
-		Color.rgb(255,0,0)};
-		
-		for(int pos=0;pos<pixels;pos++)
+		// filtering
+		for(int y=3;y<height-3;y++)
 		{
+			for(int x=3;x<width-3;x++)
+			{
+				int regionCount = 
+					detectionMapIntegralImage[y+3][x+3] -
+					detectionMapIntegralImage[y+3][x-3] -
+					detectionMapIntegralImage[y-3][x+3] +
+					detectionMapIntegralImage[y-3][x-3];
+				
+				detectionMap[y][x] = (regionCount > 20);
+			}
+		}		
+		
 
-			int offset = CbCrOffset(CbCr[pos], spotColor);
-			
-			if (pos < width || pos >= pixels-width)
-			{
-				continue;
-			}
-			
-			if (offset < 100)
-			{
-				detectionMap[pos] = 1;
-			}
-			else
-			{
-				detectionMap[pos] = 0;
-				continue;
-			}
-		}
 		
-		int heightTotal[] = new int[height];
-		int heightThreshold = 0;
-		
-		for(int pos=0;pos<pixels;pos++)
+		for(int y=3;y<height-3;y++)
 		{
-			int d = detectionMap[pos]-lastDetectionMap[pos];
-			bitmap[pos] = colors[d+1];
-			heightTotal[pos/width] += d;
-			heightThreshold += d;
-		}
-		
-		heightThreshold = (int) ((heightThreshold / height) + 20);
-		
-		for(int i=1;i<height;i++)
-		{
-			int h = heightTotal[i] >> 2;
-			int a = i*width;
-			
-			if (h > 0)
+			for(int x=3;x<width-3;x++)
 			{
-				if (h >= (heightThreshold >> 2))
-				{
-					for (int f=0; f<=h; f++)
-					{
-						bitmap[a + f] = Color.GREEN;
-					}
-				}
-				else
-				{
-					for (int f=0; f<=h; f++)
-					{
-						bitmap[a + f] = Color.WHITE;
-					}
-				}
-			}
+				bitmap[y*width+x] = detectionMap[y][x]?Color.RED:Color.BLACK;
+			} 
 		}
-		
-		
-		
-		lastDetectionMap = detectionMap;
 		
 		return bitmap;
 	}
@@ -171,10 +119,8 @@ class DrawOnTop extends View {
 		}
 	}
 	
-	public static int CbCrOffset(short a[], short b[]) {
-		int cr = a[0]-b[0];
-		int cb = a[1]-b[1];
-		return cb*cb + cr*cr;
+	public static boolean isSkinColor(short a[]) {
+		return (a[0] >= 133 && a[0] <= 173 && a[1] >= 77 && a[1] <= 127);
 	}
 
 }

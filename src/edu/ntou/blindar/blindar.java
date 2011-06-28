@@ -17,10 +17,13 @@ public class blindar extends Activity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Hide the window title.
+        // Fullscreen
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        
+        // Keep screen on
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        // Hide the window title.
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         // Create our Preview view and set it as the content of our activity.
